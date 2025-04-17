@@ -139,68 +139,9 @@
     <div class="total-votes" id="totalVotes">Total Votes: 0</div>
 
     <div class="poll-container">
-        <div class="candidate-card">
-            <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="BJP">
-            <div class="candidate-info">
-                <div class="candidate-name">BJP</div>
-                <div class="vote-bar-wrapper">
-                    <div class="vote-bar" id="Can1"></div>
-                    <div class="percentage" id="Per1">0%</div>
-                </div>
-            </div>
-            <div class="vote-count" id="Count1">0</div>
-        </div>
-
-        <div class="candidate-card">
-            <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="AAP">
-            <div class="candidate-info">
-                <div class="candidate-name">AAP</div>
-                <div class="vote-bar-wrapper">
-                    <div class="vote-bar" id="Can2"></div>
-                    <div class="percentage" id="Per2">0%</div>
-                </div>
-            </div>
-            <div class="vote-count" id="Count2">0</div>
-        </div>
-
-        <div class="candidate-card">
-            <img src="CandidateImages/congress.jpg" class="candidate-logo" alt="Congress">
-            <div class="candidate-info">
-                <div class="candidate-name">Congress</div>
-                <div class="vote-bar-wrapper">
-                    <div class="vote-bar" id="Can3"></div>
-                    <div class="percentage" id="Per3">0%</div>
-                </div>
-            </div>
-            <div class="vote-count" id="Count3">0</div>
-        </div>
-
-        <div class="candidate-card">
-            <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="BJP 2">
-            <div class="candidate-info">
-                <div class="candidate-name">BJP 2</div>
-                <div class="vote-bar-wrapper">
-                    <div class="vote-bar" id="Can4"></div>
-                    <div class="percentage" id="Per4">0%</div>
-                </div>
-            </div>
-            <div class="vote-count" id="Count4">0</div>
-        </div>
-
-        <div class="candidate-card">
-            <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="AAP 2">
-            <div class="candidate-info">
-                <div class="candidate-name">AAP 2</div>
-                <div class="vote-bar-wrapper">
-                    <div class="vote-bar" id="Can5"></div>
-                    <div class="percentage" id="Per5">0%</div>
-                </div>
-            </div>
-            <div class="vote-count" id="Count5">0</div>
-        </div>
+        <!-- Your candidate poll options go here -->
     </div>
 
-    <!-- Firebase Setup -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
@@ -210,13 +151,22 @@
             authDomain: "esp32-cam-python.firebaseapp.com",
             databaseURL: "https://esp32-cam-python-default-rtdb.firebaseio.com",
             projectId: "esp32-cam-python",
-            storageBucket: "esp32-cam-python.firebasestorage.app",
+            storageBucket: "esp32-cam-python.appspot.com",
             messagingSenderId: "660591571409",
             appId: "1:660591571409:web:dabc298c8bf408a5cbb0f0"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        const emailLocalStorage = sessionStorage.getItem("email");
+        const passwordLocalStorage = sessionStorage.getItem("password");
+        const emailFirebase = sessionStorage.getItem("emailFirebase");
+        const passwordFirebase = sessionStorage.getItem("passwordFirebase");
+
+        if (emailFirebase !== emailLocalStorage || passwordFirebase !== passwordLocalStorage) {
+            window.location.href = "index.html"; // Redirect to login page
+        }
 
         const voteRefs = [
             { path: '/votes/optionA', bar: 'Can1', count: 'Count1', percent: 'Per1' },
@@ -225,38 +175,27 @@
             { path: '/votes/optionD', bar: 'Can4', count: 'Count4', percent: 'Per4' },
             { path: '/votes/optionE', bar: 'Can5', count: 'Count5', percent: 'Per5' }
         ];
-        const emailLocalStorage = localStorage.getItem("email");
-        const passwordLocalStorage = localStorage.getItem("password");
-        const emailFirebase = localStorage.getItem("emailFirebase");
-        const passwordFirebase = localStorage.getItem("passwordFirebase");
-        if (emailFirebase === emailLocalStorage && passwordFirebase === passwordLocalStorage) {
 
-            function updateUI(voteData) {
-                const totalVotes = voteData.reduce((sum, val) => sum + val, 0);
-                document.getElementById("totalVotes").innerText = `Total Votes: ${totalVotes}`;
-    
-                voteData.forEach((val, i) => {
-                    const { bar, count, percent } = voteRefs[i];
-                    const percentage = totalVotes > 0 ? ((val / totalVotes) * 100).toFixed(1) : 0;
-                    document.getElementById(bar).style.width = `${percentage}%`;
-                    document.getElementById(count).innerText = val;
-                    document.getElementById(percent).innerText = `${percentage}%`;
-                });
-            }
-    
-            function listenVotes() {
-                let values = Array(voteRefs.length).fill(0);
-    
-                voteRefs.forEach((refObj, i) => {
-                    db.ref(refObj.path).on('value', snapshot => {
-                        values[i] = snapshot.val() || 0;
-                        updateUI(values);
-                    });
-                });
-            }
-    
-            listenVotes();
+        function updateUI(voteData) {
+            const totalVotes = voteData.reduce((sum, val) => sum + val, 0);
+            document.getElementById("totalVotes").innerText = `Total Votes: ${totalVotes}`;
+
+            voteData.forEach((val, i) => {
+                const { bar, count, percent } = voteRefs[i];
+                const percentage = totalVotes > 0 ? ((val / totalVotes) * 100).toFixed(1) : 0;
+                document.getElementById(bar).style.width = `${percentage}%`;
+                document.getElementById(count).innerText = val;
+                document.getElementById(percent).innerText = `${percentage}%`;
+            });
         }
+
+        db.ref('votes').on('value', (snapshot) => {
+            const voteData = [];
+            snapshot.forEach((child) => {
+                voteData.push(child.val());
+            });
+            updateUI(voteData);
+        });
     </script>
 
 </body>

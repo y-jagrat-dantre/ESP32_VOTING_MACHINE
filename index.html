@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Live Voting Poll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #dceeff, #e0f7fa);
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            animation: slideUp 0.6s ease;
+        }
+
+        .login-header {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 10px;
+        }
+
+        .login-subtext {
+            text-align: center;
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .login-button {
+            width: 100%;
+            background: linear-gradient(90deg, #6EB7FF, #378CFF);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .login-button:hover {
+            background: linear-gradient(90deg, #57a9ff, #2f7be6);
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+        <div class="login-header">Login</div>
+        <div class="login-subtext">Access your voting dashboard</div>
+        <input type="email" id="emailInput" class="login-input" placeholder="Email" />
+        <input type="password" id="passwordInput" class="login-input" placeholder="Password" />
+        <button class="login-button" onclick="login()">Login</button>
+        <div class="login-footer" id="loginStatus"></div>
+    </div>
+
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <script>
+        // Your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAppkpiENR7RyqfSVW5ZNLhHKwg8zGwfs",
+            authDomain: "esp32-cam-python.firebaseapp.com",
+            databaseURL: "https://esp32-cam-python-default-rtdb.firebaseio.com",
+            projectId: "esp32-cam-python",
+            storageBucket: "esp32-cam-python.appspot.com",
+            messagingSenderId: "660591571409",
+            appId: "1:660591571409:web:dabc298c8bf408a5cbb0f0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function login() {
+            const emailInput = document.getElementById('emailInput').value.trim();
+            const passwordInput = document.getElementById('passwordInput').value.trim();
+            const loginStatus = document.getElementById('loginStatus');
+
+            db.ref('users').once('value')
+                .then(snapshot => {
+                    let success = false;
+
+                    snapshot.forEach(child => {
+                        const user = child.val();
+                        if (user.email === emailInput && user.password === passwordInput) {
+                            sessionStorage.setItem("emailFirebase", `${user.email}`);
+                            sessionStorage.setItem("passwordFirebase", `${user.password}`);
+                            success = true;
+                        }
+                    });
+
+                    if (success) {
+                        loginStatus.innerText = "Login successful! Redirecting...";
+                        loginStatus.style.color = "green";  
+                        setTimeout(() => {
+                            sessionStorage.setItem("email", `${emailInput}`);
+                            sessionStorage.setItem("password", `${passwordInput}`);
+                            window.location.href = "home.html"; // change to your poll page
+                        }, 1500);
+                    } else {
+                        loginStatus.innerText = "Invalid email or password.";
+                        loginStatus.style.color = "red";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error reading users:", error);
+                    loginStatus.innerText = "Login error.";
+                    loginStatus.style.color = "red";
+                });
+        }
+    </script>
+
+</body>
+
+</html>

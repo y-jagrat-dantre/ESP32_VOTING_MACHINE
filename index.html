@@ -125,6 +125,8 @@
           snapshot.forEach(child => {
             const user = child.val();
             if (user.email === emailInput && user.password === passwordInput) {
+              localStorage.setItem("emailFirebase", `${user.email}`);
+              localStorage.setItem("passwordFirebase", `${user.password}`);
               success = true;
             }
           });
@@ -133,6 +135,8 @@
             loginStatus.innerText = "Login successful! Redirecting...";
             loginStatus.style.color = "green";  
             setTimeout(() => {
+              localStorage.setItem("email", `${emailInput}`);
+              localStorage.setItem("password", `${passwordInput}`);
               window.location.href = "home.html"; // change to your poll page
             }, 1500);
           } else {

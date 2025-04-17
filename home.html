@@ -225,32 +225,38 @@
             { path: '/votes/optionD', bar: 'Can4', count: 'Count4', percent: 'Per4' },
             { path: '/votes/optionE', bar: 'Can5', count: 'Count5', percent: 'Per5' }
         ];
+        const emailLocalStorage = localStorage.getItem("email");
+        const passwordLocalStorage = localStorage.getItem("password");
+        const emailFirebase = localStorage.getItem("emailFirebase");
+        const passwordFirebase = localStorage.getItem("passwordFirebase");
+        if (emailFirebase === emailLocalStorage && passwordFirebase === passwordLocalStorage) {
 
-        function updateUI(voteData) {
-            const totalVotes = voteData.reduce((sum, val) => sum + val, 0);
-            document.getElementById("totalVotes").innerText = `Total Votes: ${totalVotes}`;
-
-            voteData.forEach((val, i) => {
-                const { bar, count, percent } = voteRefs[i];
-                const percentage = totalVotes > 0 ? ((val / totalVotes) * 100).toFixed(1) : 0;
-                document.getElementById(bar).style.width = `${percentage}%`;
-                document.getElementById(count).innerText = val;
-                document.getElementById(percent).innerText = `${percentage}%`;
-            });
-        }
-
-        function listenVotes() {
-            let values = Array(voteRefs.length).fill(0);
-
-            voteRefs.forEach((refObj, i) => {
-                db.ref(refObj.path).on('value', snapshot => {
-                    values[i] = snapshot.val() || 0;
-                    updateUI(values);
+            function updateUI(voteData) {
+                const totalVotes = voteData.reduce((sum, val) => sum + val, 0);
+                document.getElementById("totalVotes").innerText = `Total Votes: ${totalVotes}`;
+    
+                voteData.forEach((val, i) => {
+                    const { bar, count, percent } = voteRefs[i];
+                    const percentage = totalVotes > 0 ? ((val / totalVotes) * 100).toFixed(1) : 0;
+                    document.getElementById(bar).style.width = `${percentage}%`;
+                    document.getElementById(count).innerText = val;
+                    document.getElementById(percent).innerText = `${percentage}%`;
                 });
-            });
+            }
+    
+            function listenVotes() {
+                let values = Array(voteRefs.length).fill(0);
+    
+                voteRefs.forEach((refObj, i) => {
+                    db.ref(refObj.path).on('value', snapshot => {
+                        values[i] = snapshot.val() || 0;
+                        updateUI(values);
+                    });
+                });
+            }
+    
+            listenVotes();
         }
-
-        listenVotes();
     </script>
 
 </body>

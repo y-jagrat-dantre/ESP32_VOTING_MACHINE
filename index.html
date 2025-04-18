@@ -341,11 +341,31 @@
     }
 
     const voteRefs = [
-      { path: '/votes/optionA', bar: 'Can1', count: 'Count1', percent: 'Per1' },
-      { path: '/votes/optionB', bar: 'Can2', count: 'Count2', percent: 'Per2' },
-      { path: '/votes/optionC', bar: 'Can3', count: 'Count3', percent: 'Per3' },
-      { path: '/votes/optionD', bar: 'Can4', count: 'Count4', percent: 'Per4' },
-      { path: '/votes/optionE', bar: 'Can5', count: 'Count5', percent: 'Per5' }
+      {
+        mainPath: '/votes/optionA',
+        extraPaths: ['/votes/optionA1', '/votes/optionA2', '/votes/optionA3', '/votes/optionA4', '/votes/optionA5'],
+        bar: 'Can1', count: 'Count1', percent: 'Per1'
+      },
+      {
+        mainPath: '/votes/optionB',
+        extraPaths: ['/votes/optionB1', '/votes/optionB2', '/votes/optionB3', '/votes/optionB4', '/votes/optionB5'],
+        bar: 'Can2', count: 'Count2', percent: 'Per2'
+      },
+      {
+        mainPath: '/votes/optionC',
+        extraPaths: ['/votes/optionC1', '/votes/optionC2', '/votes/optionC3', '/votes/optionC4', '/votes/optionC5'],
+        bar: 'Can3', count: 'Count3', percent: 'Per3'
+      },
+      {
+        mainPath: '/votes/optionD',
+        extraPaths: ['/votes/optionD1', '/votes/optionD2', '/votes/optionD3', '/votes/optionD4', '/votes/optionD5'],
+        bar: 'Can4', count: 'Count4', percent: 'Per4'
+      },
+      {
+        mainPath: '/votes/optionE',
+        extraPaths: ['/votes/optionE1', '/votes/optionE2', '/votes/optionE3', '/votes/optionE4', '/votes/optionE5'],
+        bar: 'Can5', count: 'Count5', percent: 'Per5'
+      }
     ];
 
     function updateUI(voteData) {
@@ -363,10 +383,23 @@
 
     function listenVotes() {
       let values = Array(voteRefs.length).fill(0);
+
       voteRefs.forEach((refObj, i) => {
-        db.ref(refObj.path).on('value', snapshot => {
-          values[i] = snapshot.val() || 0;
-          updateUI(values);
+        const pathsToWatch = [refObj.mainPath, ...refObj.extraPaths];
+
+        pathsToWatch.forEach(path => {
+          db.ref(path).on('value', snapshot => {
+            // Re-fetch all paths every time one changes
+            const updates = pathsToWatch.map(p => db.ref(p).once('value'));
+            Promise.all(updates).then(snapshots => {
+              let total = 0;
+              snapshots.forEach(snap => {
+                total += snap.val() || 0;
+              });
+              values[i] = total;
+              updateUI(values);
+            });
+          });
         });
       });
     }

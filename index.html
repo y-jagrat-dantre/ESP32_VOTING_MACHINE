@@ -1,168 +1,375 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Live Voting Poll</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Voting Poll</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #dceeff, #e0f7fa);
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-        body {
-            background: linear-gradient(135deg, #dceeff, #e0f7fa);
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+    .login-container,
+    .poll-container-wrapper {
+      display: none;
+    }
 
-        .login-container {
-            background-color: #fff;
-            border-radius: 20px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            padding: 40px 30px;
-            animation: slideUp 0.6s ease;
-        }
+    .show {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
 
-        .login-header {
-            text-align: center;
-            font-size: 32px;
-            font-weight: 600;
-            color: #222;
-            margin-bottom: 10px;
-        }
+    .login-container.show {
+      align-items: center;
+      justify-content: center;
+      display: flex;
+      animation: slideUp 0.6s ease;
+    }
 
-        .login-subtext {
-            text-align: center;
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 30px;
-        }
+    .poll-container-wrapper.show {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.6s ease;
+    }
 
-        .login-input {
-            width: 100%;
-            padding: 14px 16px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            font-size: 16px;
-        }
+    .login-container {
+      background-color: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      padding: 40px 30px;
+    }
 
-        .login-button {
-            width: 100%;
-            background: linear-gradient(90deg, #6EB7FF, #378CFF);
-            color: white;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
+    .login-header {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 10px;
+    }
 
-        .login-button:hover {
-            background: linear-gradient(90deg, #57a9ff, #2f7be6);
-        }
+    .login-subtext {
+      text-align: center;
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 30px;
+    }
 
-        .login-footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
+    .login-input {
+      width: 100%;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
+    .login-button {
+      width: 100%;
+      background: linear-gradient(90deg, #6EB7FF, #378CFF);
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+    .login-button:hover {
+      background: linear-gradient(90deg, #57a9ff, #2f7be6);
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+      font-size: 42px;
+      font-weight: 600;
+      color: #222;
+      padding: 30px 10px 10px;
+    }
+
+    .sub-header {
+      text-align: center;
+      font-size: 20px;
+      color: #444;
+      margin-bottom: 30px;
+    }
+
+    .poll-container {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .candidate-card {
+      background-color: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      gap: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .candidate-card:hover {
+      transform: scale(1.02);
+    }
+
+    .candidate-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .candidate-info {
+      flex: 1;
+    }
+
+    .candidate-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .vote-bar-wrapper {
+      background-color: #f0f0f0;
+      border-radius: 8px;
+      height: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vote-bar {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #6EB7FF, #378CFF);
+      transition: width 0.6s ease-in-out;
+      width: 0;
+    }
+
+    .vote-count {
+      font-size: 18px;
+      font-weight: 500;
+      min-width: 50px;
+      text-align: right;
+      color: #444;
+    }
+
+    .percentage {
+      font-size: 14px;
+      color: #666;
+      position: absolute;
+      right: 10px;
+      top: 4px;
+      font-weight: 500;
+    }
+
+    .total-votes {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 500;
+      color: #555;
+      margin-top: 10px;
+    }
+  </style>
 </head>
-
 <body>
 
-    <div class="login-container">
-        <div class="login-header">Login</div>
-        <div class="login-subtext">Access your voting dashboard</div>
-        <input type="email" id="emailInput" class="login-input" placeholder="Email" />
-        <input type="password" id="passwordInput" class="login-input" placeholder="Password" />
-        <button class="login-button" onclick="login()">Login</button>
-        <div class="login-footer" id="loginStatus"></div>
+  <!-- Login Page -->
+  <div class="login-container show" id="loginPage">
+    <div class="login-header">Login</div>
+    <div class="login-subtext">Access your voting dashboard</div>
+    <input type="email" id="emailInput" class="login-input" placeholder="Email" />
+    <input type="password" id="passwordInput" class="login-input" placeholder="Password" />
+    <button class="login-button" onclick="login()">Login</button>
+    <div class="login-footer" id="loginStatus"></div>
+  </div>
+
+  <!-- Voting Poll Page -->
+  <div class="poll-container-wrapper" id="pollPage">
+    <div class="header">Live Voting Poll</div>
+    <div class="sub-header">Real-time results with vote bars and percentages</div>
+    <div class="total-votes" id="totalVotes">Total Votes: 0</div>
+
+    <div class="poll-container">
+      <!-- Candidate Cards -->
+      <div class="candidate-card">
+        <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="BJP">
+        <div class="candidate-info">
+          <div class="candidate-name">BJP</div>
+          <div class="vote-bar-wrapper">
+            <div class="vote-bar" id="Can1"></div>
+            <div class="percentage" id="Per1">0%</div>
+          </div>
+        </div>
+        <div class="vote-count" id="Count1">0</div>
+      </div>
+
+      <div class="candidate-card">
+        <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="AAP">
+        <div class="candidate-info">
+          <div class="candidate-name">AAP</div>
+          <div class="vote-bar-wrapper">
+            <div class="vote-bar" id="Can2"></div>
+            <div class="percentage" id="Per2">0%</div>
+          </div>
+        </div>
+        <div class="vote-count" id="Count2">0</div>
+      </div>
+
+      <div class="candidate-card">
+        <img src="CandidateImages/congress.jpg" class="candidate-logo" alt="Congress">
+        <div class="candidate-info">
+          <div class="candidate-name">Congress</div>
+          <div class="vote-bar-wrapper">
+            <div class="vote-bar" id="Can3"></div>
+            <div class="percentage" id="Per3">0%</div>
+          </div>
+        </div>
+        <div class="vote-count" id="Count3">0</div>
+      </div>
+
+      <div class="candidate-card">
+        <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="BJP 2">
+        <div class="candidate-info">
+          <div class="candidate-name">BJP 2</div>
+          <div class="vote-bar-wrapper">
+            <div class="vote-bar" id="Can4"></div>
+            <div class="percentage" id="Per4">0%</div>
+          </div>
+        </div>
+        <div class="vote-count" id="Count4">0</div>
+      </div>
+
+      <div class="candidate-card">
+        <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="AAP 2">
+        <div class="candidate-info">
+          <div class="candidate-name">AAP 2</div>
+          <div class="vote-bar-wrapper">
+            <div class="vote-bar" id="Can5"></div>
+            <div class="percentage" id="Per5">0%</div>
+          </div>
+        </div>
+        <div class="vote-count" id="Count5">0</div>
+      </div>
     </div>
+  </div>
 
-    <!-- Firebase SDK v8 -->
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
-    <script>
-        // Your Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBAppkpiENR7RyqfSVW5ZNLhHKwg8zGwfs",
-            authDomain: "esp32-cam-python.firebaseapp.com",
-            databaseURL: "https://esp32-cam-python-default-rtdb.firebaseio.com",
-            projectId: "esp32-cam-python",
-            storageBucket: "esp32-cam-python.appspot.com",
-            messagingSenderId: "660591571409",
-            appId: "1:660591571409:web:dabc298c8bf408a5cbb0f0"
-        };
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBAppkpiENR7RyqfSVW5ZNLhHKwg8zGwfs",
+      authDomain: "esp32-cam-python.firebaseapp.com",
+      databaseURL: "https://esp32-cam-python-default-rtdb.firebaseio.com",
+      projectId: "esp32-cam-python",
+      storageBucket: "esp32-cam-python.appspot.com",
+      messagingSenderId: "660591571409",
+      appId: "1:660591571409:web:dabc298c8bf408a5cbb0f0"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        function login() {
-            const emailInput = document.getElementById('emailInput').value.trim();
-            const passwordInput = document.getElementById('passwordInput').value.trim();
-            const loginStatus = document.getElementById('loginStatus');
+    function login() {
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value.trim();
+      const loginStatus = document.getElementById('loginStatus');
 
-            db.ref('users').once('value')
-                .then(snapshot => {
-                    let success = false;
+      db.ref('users').once('value')
+        .then(snapshot => {
+          let success = false;
+          snapshot.forEach(child => {
+            const user = child.val();
+            if (user.email === email && user.password === password) {
+              success = true;
+            }
+          });
 
-                    snapshot.forEach(child => {
-                        const user = child.val();
-                        if (user.email === emailInput && user.password === passwordInput) {
-                            sessionStorage.setItem("emailFirebase", `${user.email}`);
-                            sessionStorage.setItem("passwordFirebase", `${user.password}`);
-                            success = true;
-                        }
-                    });
+          if (success) {
+            loginStatus.innerText = "Login successful! Redirecting...";
+            loginStatus.style.color = "green";
+            setTimeout(() => {
+              document.getElementById("loginPage").classList.remove("show");
+              document.getElementById("pollPage").classList.add("show");
+              listenVotes();
+            }, 1000);
+          } else {
+            loginStatus.innerText = "Invalid email or password.";
+            loginStatus.style.color = "red";
+          }
+        })
+        .catch(error => {
+          console.error("Error reading users:", error);
+          loginStatus.innerText = "Login error.";
+          loginStatus.style.color = "red";
+        });
+    }
 
-                    if (success) {
-                        loginStatus.innerText = "Login successful! Redirecting...";
-                        loginStatus.style.color = "green";  
-                        setTimeout(() => {
-                            sessionStorage.setItem("email", `${emailInput}`);
-                            sessionStorage.setItem("password", `${passwordInput}`);
-                            window.location.href = "home.html"; // change to your poll page
-                        }, 1500);
-                    } else {
-                        loginStatus.innerText = "Invalid email or password.";
-                        loginStatus.style.color = "red";
-                    }
-                })
-                .catch(error => {
-                    console.error("Error reading users:", error);
-                    loginStatus.innerText = "Login error.";
-                    loginStatus.style.color = "red";
-                });
-        }
-    </script>
+    const voteRefs = [
+      { path: '/votes/optionA', bar: 'Can1', count: 'Count1', percent: 'Per1' },
+      { path: '/votes/optionB', bar: 'Can2', count: 'Count2', percent: 'Per2' },
+      { path: '/votes/optionC', bar: 'Can3', count: 'Count3', percent: 'Per3' },
+      { path: '/votes/optionD', bar: 'Can4', count: 'Count4', percent: 'Per4' },
+      { path: '/votes/optionE', bar: 'Can5', count: 'Count5', percent: 'Per5' }
+    ];
 
+    function updateUI(voteData) {
+      const totalVotes = voteData.reduce((sum, val) => sum + val, 0);
+      document.getElementById("totalVotes").innerText = `Total Votes: ${totalVotes}`;
+
+      voteData.forEach((val, i) => {
+        const { bar, count, percent } = voteRefs[i];
+        const percentage = totalVotes > 0 ? ((val / totalVotes) * 100).toFixed(1) : 0;
+        document.getElementById(bar).style.width = `${percentage}%`;
+        document.getElementById(count).innerText = val;
+        document.getElementById(percent).innerText = `${percentage}%`;
+      });
+    }
+
+    function listenVotes() {
+      let values = Array(voteRefs.length).fill(0);
+      voteRefs.forEach((refObj, i) => {
+        db.ref(refObj.path).on('value', snapshot => {
+          values[i] = snapshot.val() || 0;
+          updateUI(values);
+        });
+      });
+    }
+  </script>
 </body>
-
 </html>

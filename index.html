@@ -429,7 +429,7 @@
         let success = false;
         snapshot.forEach(child => {
           const user = child.val();
-          if (user.email === email && user.password === password || true) {
+          if (user.email === email && user.password === password) {
             success = true;
           }
         });

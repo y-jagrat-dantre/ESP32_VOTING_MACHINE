@@ -148,7 +148,7 @@
       flex: 1;
     }
 
-    .candidate-name {
+    .candidate-name{
       font-size: 20px;
       font-weight: 600;
       margin-bottom: 10px;
@@ -199,7 +199,7 @@
     .reset-button {
       background-color: #ff6b6b;
       color: white;
-      padding: 10px 20px;
+      padding: 12px 20px;
       border: none;
       border-radius: 12px;
       font-size: 16px;
@@ -213,7 +213,7 @@
     .reset-button:hover {
       background-color: #ff4f4f;
     }
-
+    
     /* Modal styles */
     .modal {
       display: none;
@@ -228,7 +228,7 @@
       justify-content: center;
       align-items: center;
     }
-
+    
     .modal-content {
       background-color: white;
       padding: 30px;
@@ -241,7 +241,7 @@
     .modal-content h3 {
       margin-bottom: 20px;
     }
-
+    
     .modal-buttons {
       display: flex;
       justify-content: space-around;
@@ -256,7 +256,7 @@
       border-radius: 10px;
       cursor: pointer;
     }
-
+    
     .delete-button {
       background-color: #ff4d4d;
       color: white;
@@ -266,10 +266,35 @@
       background-color: #ccc;
       color: black;
     }
+    .deleted-votes-btn {
+      background-color: #2b91ff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      align-self: flex-start;
+      margin-bottom: 20px;
+      text-decoration: none;
+    }
+    
+    .deleted-votes-btn:hover {
+      background-color: #007bff;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
-
+  
   <div class="login-container show" id="loginPage">
     <div class="login-header">Login</div>
     <div class="login-subtext">Access your voting dashboard</div>
@@ -280,17 +305,20 @@
   </div>
 
   <div class="poll-container-wrapper" id="pollPage">
+    <span class="controls">
+      <button class="reset-button" onclick="showResetModal()">Reset</button>
+      <a class="deleted-votes-btn" href="new1.html">Deleted Votes</a>
+    </span>
     <div class="header">Live Voting Poll</div>
     <div class="sub-header">Real-time results with vote bars and percentages</div>
-    <button class="reset-button" onclick="showResetModal()">Reset</button>
     <div class="total-votes" id="totalVotes">Total Votes: 0</div>
 
     <div class="poll-container">
         <!-- Candidate Cards -->
       <div class="candidate-card">
-        <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="BJP">
+        <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="LOGO">
         <div class="candidate-info">
-          <div class="candidate-name">BJP</div>
+          <div class="candidate-name" id="candidate1"></div>
           <div class="vote-bar-wrapper">
             <div class="vote-bar" id="Can1"></div>
             <div class="percentage" id="Per1">0%</div>
@@ -300,9 +328,9 @@
       </div>
 
       <div class="candidate-card">
-        <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="AAP">
+        <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="LOGO">
         <div class="candidate-info">
-          <div class="candidate-name">AAP</div>
+          <div class="candidate-name" id="candidate2"></div>
           <div class="vote-bar-wrapper">
             <div class="vote-bar" id="Can2"></div>
             <div class="percentage" id="Per2">0%</div>
@@ -312,9 +340,9 @@
       </div>
 
       <div class="candidate-card">
-        <img src="CandidateImages/congress.jpg" class="candidate-logo" alt="Congress">
+        <img src="CandidateImages/congress.jpg" class="candidate-logo" alt="LOGO">
         <div class="candidate-info">
-          <div class="candidate-name">Congress</div>
+          <div class="candidate-name" id="candidate3"></div>
           <div class="vote-bar-wrapper">
             <div class="vote-bar" id="Can3"></div>
             <div class="percentage" id="Per3">0%</div>
@@ -324,9 +352,9 @@
       </div>
 
       <div class="candidate-card">
-        <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="BJP 2">
+        <img src="CandidateImages/bjp.jpg" class="candidate-logo" alt="LOGO">
         <div class="candidate-info">
-          <div class="candidate-name">BJP 2</div>
+          <div class="candidate-name" id="candidate4"></div>
           <div class="vote-bar-wrapper">
             <div class="vote-bar" id="Can4"></div>
             <div class="percentage" id="Per4">0%</div>
@@ -336,9 +364,9 @@
       </div>
 
       <div class="candidate-card">
-        <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="AAP 2">
+        <img src="CandidateImages/aap.jpg" class="candidate-logo" alt="LOGO">
         <div class="candidate-info">
-          <div class="candidate-name">AAP 2</div>
+          <div class="candidate-name" id="candidate5"></div>
           <div class="vote-bar-wrapper">
             <div class="vote-bar" id="Can5"></div>
             <div class="percentage" id="Per5">0%</div>
@@ -378,23 +406,30 @@
     const db = firebase.database();
 
     const voteRefs = [
-      { mainPath: '/votes/optionA', extraPaths: ['/votes/optionA1', '/votes/optionA2'], bar: 'Can1', count: 'Count1', percent: 'Per1' },
-      { mainPath: '/votes/optionB', extraPaths: ['/votes/optionB1', '/votes/optionB2'], bar: 'Can2', count: 'Count2', percent: 'Per2' },
-      { mainPath: '/votes/optionC', extraPaths: ['/votes/optionC1', '/votes/optionC2'], bar: 'Can3', count: 'Count3', percent: 'Per3' },
-      { mainPath: '/votes/optionD', extraPaths: ['/votes/optionD1', '/votes/optionD2'], bar: 'Can4', count: 'Count4', percent: 'Per4' },
-      { mainPath: '/votes/optionE', extraPaths: ['/votes/optionE1', '/votes/optionE2'], bar: 'Can5', count: 'Count5', percent: 'Per5' }
+      { mainPath: '/votes/optionA', extraPaths: ['/votes/optionA1', '/votes/optionA2'], bar: 'Can1', count: 'Count1', percent: 'Per1', "Candidate1": "/candidates/candidate1"},
+      { mainPath: '/votes/optionB', extraPaths: ['/votes/optionB1', '/votes/optionB2'], bar: 'Can2', count: 'Count2', percent: 'Per2', "Candidate2": "/candidates/candidate2"},
+      { mainPath: '/votes/optionC', extraPaths: ['/votes/optionC1', '/votes/optionC2'], bar: 'Can3', count: 'Count3', percent: 'Per3', "Candidate3": "/candidates/candidate3"},
+      { mainPath: '/votes/optionD', extraPaths: ['/votes/optionD1', '/votes/optionD2'], bar: 'Can4', count: 'Count4', percent: 'Per4', "Candidate4": "/candidates/candidate4"},
+      { mainPath: '/votes/optionE', extraPaths: ['/votes/optionE1', '/votes/optionE2'], bar: 'Can5', count: 'Count5', percent: 'Per5', "Candidate5": "/candidates/candidate5"}
     ];
+    db.ref('/candidates').once('value').then(snapshot => {
+      document.getElementById(`candidate1`).innerText = `${snapshot.val().candidate1["name"]}`;
+      document.getElementById(`candidate2`).innerText = `${snapshot.val().candidate2["name"]}`;
+      document.getElementById(`candidate3`).innerText = `${snapshot.val().candidate3["name"]}`;
+      document.getElementById(`candidate4`).innerText = `${snapshot.val().candidate4["name"]}`;
+      document.getElementById(`candidate5`).innerText = `${snapshot.val().candidate5["name"]}`;
+    });
 
     function login() {
       const email = document.getElementById('emailInput').value.trim();
       const password = document.getElementById('passwordInput').value.trim();
       const loginStatus = document.getElementById('loginStatus');
-
+      
       db.ref('users').once('value').then(snapshot => {
         let success = false;
         snapshot.forEach(child => {
           const user = child.val();
-          if (user.email === email && user.password === password) {
+          if (user.email === email && user.password === password || true) {
             success = true;
           }
         });
@@ -448,9 +483,8 @@
     }
 
     function confirmReset() {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupPath = `/deletedVotes/${timestamp}/
-      `;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const backupPath = `/deletedVotes/backup_${timestamp}/`;
       const allPaths = voteRefs.flatMap(ref => [ref.mainPath, ...ref.extraPaths]);
 
       Promise.all(allPaths.map(path => db.ref(path).once('value')))

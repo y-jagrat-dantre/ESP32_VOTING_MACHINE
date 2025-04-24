@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Deleted Vote Polls</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background: #f4f9ff;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 32px;
+            color: #0077cc;
+        }
+
+        .backup-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .backup-entry {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+        }
+
+        .timestamp {
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #444;
+        }
+
+        .candidate-card {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .candidate-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 14px;
+        }
+
+        .candidate-info {
+            flex-grow: 1;
+        }
+
+        .candidate-name {
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .vote-bar-wrapper {
+            background: #d0e2ff;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .vote-bar {
+            height: 12px;
+            background: #0077cc;
+        }
+
+        .percentage {
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .vote-count {
+            font-weight: bold;
+            margin-left: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Deleted Vote Polls (Backups)</h1>
+    <div class="backup-container" id="backupContainer">
+        <!-- Poll backups will appear here -->
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAppkpiENR7RyqfSVW5ZNLhHKwg8zGwfs",
+            authDomain: "esp32-cam-python.firebaseapp.com",
+            databaseURL: "https://esp32-cam-python-default-rtdb.firebaseio.com",
+            projectId: "esp32-cam-python",
+            storageBucket: "esp32-cam-python.appspot.com",
+            messagingSenderId: "660591571409",
+            appId: "1:660591571409:web:dabc298c8bf408a5cbb0f0"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const container = document.getElementById("backupContainer");
+
+        const candidateMap = {
+            "Candidate1": ["optionA", "optionA1", "optionA2"],
+            "Candidate2": ["optionB", "optionB1", "optionB2"],
+            "Candidate3": ["optionC", "optionC1", "optionC2"],
+            "Candidate4": ["optionD", "optionD1", "optionD2"],
+            "Candidate5": ["optionE", "optionE1", "optionE2"],
+        };
+
+        db.ref("/deletedVotes").once("value").then(snapshot => {
+            const data = snapshot.val();
+            if (!data) {
+                container.innerHTML = "<p>No backups found.</p>";
+                return;
+            }
+
+            const entries = Object.entries(data).sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+            entries.forEach(([timestampKey, backupData]) => {
+                const votesRaw = backupData.votes || backupData;
+
+                // Merge votes based on candidate map
+                const mergedVotes = {};
+                Object.entries(candidateMap).forEach(([candidate, keys]) => {
+                    mergedVotes[candidate] = keys.reduce((sum, key) => sum + (votesRaw[key] || 0), 0);
+                });
+
+                const totalVotes = Object.values(mergedVotes).reduce((sum, val) => sum + val, 0);
+
+                const backupDiv = document.createElement("div");
+                backupDiv.className = "backup-entry";
+
+                const match = timestampKey.match(/backup_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/);
+                const formattedTime = match
+                    ? `${match[3]}/${match[2]}/${match[1]}, ${match[4]}:${match[5]}:${match[6]}`
+                    : new Date(timestampKey).toLocaleString();
+
+                const timeHeader = document.createElement("div");
+                timeHeader.className = "timestamp";
+                timeHeader.textContent = `Backup Time: ${formattedTime}`;
+                backupDiv.appendChild(timeHeader);
+
+                Object.entries(mergedVotes).forEach(([candidate, count]) => {
+                    const percentage = totalVotes > 0 ? ((count / totalVotes) * 100).toFixed(1) : 0;
+
+                    const card = document.createElement("div");
+                    card.className = "candidate-card";
+
+                    card.innerHTML = `
+                        <img class="candidate-logo" src="https://via.placeholder.com/40" alt="Logo" />
+                        <div class="candidate-info">
+                            <div class="candidate-name">${candidate}</div>
+                            <div class="vote-bar-wrapper">
+                                <div class="vote-bar" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                        <div class="vote-count">${count} (${percentage}%)</div>
+                    `;
+
+                    backupDiv.appendChild(card);
+                });
+
+                container.appendChild(backupDiv);
+            });
+        });
+    </script>
+
+</body>
+
+</html>

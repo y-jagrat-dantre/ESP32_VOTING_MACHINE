@@ -449,7 +449,8 @@
 
     function confirmReset() {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupPath = `/deletedVotes/${timestamp}`;
+      const backupPath = `/deletedVotes/${timestamp}/
+      `;
       const allPaths = voteRefs.flatMap(ref => [ref.mainPath, ...ref.extraPaths]);
 
       Promise.all(allPaths.map(path => db.ref(path).once('value')))

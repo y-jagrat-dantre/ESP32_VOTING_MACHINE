@@ -1,9 +1,14 @@
 #include <WiFi.h>
 #include <FirebaseESP32.h>
+#include <IRremoteESP8266.h>
+#include <IRrecv.h>
 
 // Wi-Fi credentials
 #define WIFI_SSID "senior wing #2"
 #define WIFI_PASSWORD "atl@2022"
+
+// #define WIFI_SSID "ZTE-cz9JjE"
+// #define WIFI_PASSWORD "pgh3pt6r"
 
 // Firebase config
 #define FIREBASE_HOST "esp32-cam-python-default-rtdb.firebaseio.com/"
@@ -21,6 +26,9 @@
 #define VOTE_BUZZER 13
 #define VOTE_STATUS_LED 32  // Voting status LED
 
+IRrecv irrecv(35);
+decode_results results;
+
 // Vote counts
 int voteA = 0, voteB = 0, voteC = 0, voteD = 0, voteE = 0;
 
@@ -33,6 +41,7 @@ void setup() {
   Serial.begin(115200);
 
   // Setup pins
+  irrecv.enableIRIn();
   pinMode(BUTTON_A, INPUT_PULLUP);
   pinMode(BUTTON_B, INPUT_PULLUP);
   pinMode(BUTTON_C, INPUT_PULLUP);
@@ -69,22 +78,34 @@ void loop() {
     buzz();
     waitRelease(VOTE_BUTTON);
   }
+  
+  if(irrecv.decode(&results)){
+    Serial.println(results.value, HEX);
+    if(results.value == 0xFF30CF){
+      canVote = true;
+      digitalWrite(VOTE_STATUS_LED, HIGH);
+      Serial.println("Vote session started. Please choose your option.");
+      buzz();
+    }
+    delay(1000);
+    irrecv.resume();
+  }
 
   if (canVote) {
     if (digitalRead(BUTTON_A) == LOW) {
-      sendVote("/votes/optionA1", voteA);
+      sendVote("/votes/optionA", voteA);
       finishVoting(BUTTON_A);
     } else if (digitalRead(BUTTON_B) == LOW) {
-      sendVote("/votes/optionB1", voteB);
+      sendVote("/votes/optionB", voteB);
       finishVoting(BUTTON_B);
     } else if (digitalRead(BUTTON_C) == LOW) {
-      sendVote("/votes/optionC1", voteC);
+      sendVote("/votes/optionC", voteC);
       finishVoting(BUTTON_C);
     } else if (digitalRead(BUTTON_D) == LOW) {
-      sendVote("/votes/optionD1", voteD);
+      sendVote("/votes/optionD", voteD);
       finishVoting(BUTTON_D);
     } else if (digitalRead(BUTTON_E) == LOW) {
-      sendVote("/votes/optionE1", voteE);
+      sendVote("/votes/optionE", voteE);
       finishVoting(BUTTON_E);
     }
   }
@@ -124,27 +145,27 @@ void sendVote(String path, int &localVoteVar) {
 
 // Load existing vote counts on startup
 void getVoteData() {
-  if (Firebase.getInt(firebaseData, "/votes/optionA1"))
+  if (Firebase.getInt(firebaseData, "/votes/optionA"))
     voteA = firebaseData.intData();
   else
     voteA = 0;
 
-  if (Firebase.getInt(firebaseData, "/votes/optionB1"))
+  if (Firebase.getInt(firebaseData, "/votes/optionB"))
     voteB = firebaseData.intData();
   else
     voteB = 0;
 
-  if (Firebase.getInt(firebaseData, "/votes/optionC1"))
+  if (Firebase.getInt(firebaseData, "/votes/optionC"))
     voteC = firebaseData.intData();
   else
     voteC = 0;
 
-  if (Firebase.getInt(firebaseData, "/votes/optionD1"))
+  if (Firebase.getInt(firebaseData, "/votes/optionD"))
     voteD = firebaseData.intData();
   else
     voteD = 0;
 
-  if (Firebase.getInt(firebaseData, "/votes/optionE1"))
+  if (Firebase.getInt(firebaseData, "/votes/optionE"))
     voteE = firebaseData.intData(); 
   else
     voteE = 0;

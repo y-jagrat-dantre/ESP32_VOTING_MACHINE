@@ -5,57 +5,140 @@
     <meta charset="UTF-8" />
     <title>Deleted Vote Polls</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Inter', sans-serif;
             margin: 0;
-            background: #f4f9ff;
             padding: 40px 20px;
-            color: #333;
+            color: #e0f2fe;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         h1 {
             text-align: center;
-            margin-bottom: 40px;
-            font-size: 32px;
-            color: #0077cc;
+            font-size: 40px;
+            font-weight: 900;
+            color: #e0f2fe;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease;
         }
 
         .backup-container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 0 20px;
+            animation: popIn 0.7s ease-out;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .backup-entry {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.6s ease-out forwards;
+            width: calc(33.33% - 16px); /* Three entries per row */
+        }
+
+        .backup-entry:nth-child(1) { animation-delay: 0.1s; }
+        .backup-entry:nth-child(2) { animation-delay: 0.2s; }
+        .backup-entry:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .timestamp {
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #444;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #e0f2fe;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease;
         }
 
         .candidate-card {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
-            background: #f0f4ff;
-            padding: 12px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-8px) rotateX(2deg) rotateY(2deg);
+            box-shadow: 0 16px 48px rgba(59, 130, 246, 0.3);
         }
 
         .candidate-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 14px;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            margin-right: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .candidate-logo:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+        }
+
+        .candidate-logo.error {
+            background: #ef4444;
+            border: none;
         }
 
         .candidate-info {
@@ -63,33 +146,168 @@
         }
 
         .candidate-name {
-            font-weight: bold;
-            margin-bottom: 6px;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #e0f2fe;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .vote-bar-wrapper {
-            background: #d0e2ff;
-            height: 12px;
-            border-radius: 6px;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            height: 36px;
             position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .vote-bar-wrapper:hover {
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
         }
 
         .vote-bar {
-            height: 12px;
-            background: #0077cc;
+            height: 100%;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #3b82f6, #22d3ee);
+            transition: width 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 12px rgba(59, 130, 246, 0.5);
+            animation: pulseBar 0.6s ease;
+        }
+
+        .vote-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0.15) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 40px 40px;
+            animation: shimmer 1.5s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -40px 0;
+            }
+            100% {
+                background-position: 40px 0;
+            }
+        }
+
+        @keyframes pulseBar {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 0 20px rgba(59, 130, 246, 1);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+            }
+        }
+
+        .percentage {
+            font-size: 16px;
+            color: #94a3b8;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 500;
         }
 
         .vote-count {
-            font-weight: bold;
-            margin-left: 14px;
+            font-weight: 600;
+            font-size: 18px;
+            margin-left: 16px;
+            color: #e0f2fe;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 28px;
+            height: 28px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            text-align: center;
+            font-size: 18px;
+            color: #ef4444;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+            animation: fadeIn 1s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .backup-entry {
+                width: calc(50% - 16px); /* Two entries per row */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .backup-container {
+                max-width: 100%;
+                padding: 0 10px;
+            }
+
+            .backup-entry {
+                width: 100%; /* One entry per row */
+            }
+
+            .candidate-card {
+                flex-direction: row;
+                align-items: center;
+                padding: 12px;
+            }
+
+            .candidate-logo {
+                margin-right: 12px;
+                margin-bottom: 0;
+            }
+
+            .vote-count {
+                margin-left: 12px;
+                margin-top: 0;
+            }
         }
     </style>
 </head>
 
 <body>
-
     <h1>Deleted Vote Polls (Backups)</h1>
+    <div class="loading-spinner" id="loadingSpinner"></div>
     <div class="backup-container" id="backupContainer"></div>
 
     <!-- Firebase SDK -->
@@ -97,40 +315,52 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyBAppkpiENR7RyqfSVW5ZNLhHKwg8zGwfs",
-            authDomain: "esp32-cam-python.firebaseapp.com",
-            databaseURL: "https://esp32-cam-python-default-rtdb.firebaseio.com",
-            projectId: "esp32-cam-python",
-            storageBucket: "esp32-cam-python.appspot.com",
-            messagingSenderId: "660591571409",
-            appId: "1:660591571409:web:dabc298c8bf408a5cbb0f0"
+            apiKey: "AIzaSyA5Eh7JoLemuvpyQRED5obXvgi4G2sGJcc",
+            authDomain: "sanmati-voting-machine.firebaseapp.com",
+            databaseURL: "https://sanmati-voting-machine-default-rtdb.firebaseio.com",
+            projectId: "sanmati-voting-machine",
+            storageBucket: "sanmati-voting-machine.firebasestorage.app",
+            messagingSenderId: "1056435615808",
+            appId: "1:1056435615808:web:6325fe53a1dd9c6b0307a5",
+            measurementId: "G-KLPSL78YGH"
         };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const container = document.getElementById("backupContainer");
+        const loadingSpinner = document.getElementById("loadingSpinner");
 
-        // Step 1: Load candidate names and option mappings
+        // Show loading spinner
+        loadingSpinner.style.display = 'block';
+
+        // Load candidate names and option mappings
         db.ref("/candidates").once("value").then(candidateSnap => {
             const candidateData = candidateSnap.val();
             if (!candidateData) {
-                container.innerHTML = "<p>No candidate data found.</p>";
+                container.innerHTML = "<p class='error-message'>No candidate data found.</p>";
+                loadingSpinner.style.display = 'none';
                 return;
             }
 
             const candidateMap = {};
             Object.values(candidateData).forEach(candidate => {
-                candidateMap[candidate.name] = candidate.options;
+                candidateMap[candidate.name] = candidate.options || [];
             });
 
-            // Step 2: Load deleted vote backups
+            // Load deleted vote backups
             db.ref("/deletedVotes").once("value").then(snapshot => {
+                loadingSpinner.style.display = 'none';
                 const data = snapshot.val();
                 if (!data) {
-                    container.innerHTML = "<p>No backups found.</p>";
+                    container.innerHTML = "<p class='error-message'>No backups found.</p>";
                     return;
                 }
 
-                const entries = Object.entries(data).sort((a, b) => new Date(b[0]) - new Date(a[0]));
+                const entries = Object.entries(data).sort((a, b) => {
+                    const dateA = new Date(a[0].replace('backup_', '').replace(/_/g, ':'));
+                    const dateB = new Date(b[0].replace('backup_', '').replace(/_/g, ':'));
+                    return dateB - dateA;
+                });
 
                 entries.forEach(([timestampKey, backupData]) => {
                     const votesRaw = backupData.votes || backupData;
@@ -151,7 +381,7 @@
                     if (match) {
                         formattedTime = `${match[3]}/${match[2]}/${match[1]}, ${match[4]}:${match[5]}:${match[6]}`;
                     } else {
-                        const parsed = new Date(timestampKey);
+                        const parsed = new Date(timestampKey.replace('backup_', '').replace(/_/g, ':'));
                         formattedTime = isNaN(parsed)
                             ? timestampKey.replace(/_/g, ' ')
                             : parsed.toLocaleString();
@@ -159,7 +389,7 @@
 
                     const timeHeader = document.createElement("div");
                     timeHeader.className = "timestamp";
-                    timeHeader.textContent = `Backup Time: Date:- ${formattedTime.slice(7, 17)} Time:- ${formattedTime.slice(18, 29)}`;
+                    timeHeader.textContent = `Backup Time: ${formattedTime}`;
                     backupDiv.appendChild(timeHeader);
 
                     // Display each candidate
@@ -170,22 +400,40 @@
                         const card = document.createElement("div");
                         card.className = "candidate-card";
 
-                        card.innerHTML = `
-                            <img class="candidate-logo" src="CandidateImages/${imageFile}" alt="Logo" />
+                        const img = document.createElement("img");
+                        img.className = "candidate-logo";
+                        img.src = `CandidateImages/${imageFile}`;
+                        img.alt = candidate;
+                        img.onerror = () => {
+                            img.src = '';
+                            img.className = "candidate-logo error";
+                        };
+
+                        card.appendChild(img);
+                        card.innerHTML += `
                             <div class="candidate-info">
                                 <div class="candidate-name">${candidate}</div>
                                 <div class="vote-bar-wrapper">
                                     <div class="vote-bar" style="width: ${percentage}%"></div>
+                                    <div class="percentage">${percentage}%</div>
                                 </div>
                             </div>
-                            <div class="vote-count">${count} (${percentage}%)</div>
+                            <div class="vote-count">${count}</div>
                         `;
                         backupDiv.appendChild(card);
                     });
 
                     container.appendChild(backupDiv);
                 });
+            }).catch(error => {
+                loadingSpinner.style.display = 'none';
+                container.innerHTML = "<p class='error-message'>Error loading backups: " + error.message + "</p>";
+                console.error("Error loading backups:", error);
             });
+        }).catch(error => {
+            loadingSpinner.style.display = 'none';
+            container.innerHTML = "<p class='error-message'>Error loading candidate data: " + error.message + "</p>";
+            console.error("Error loading candidate data:", error);
         });
     </script>
 </body>

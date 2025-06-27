@@ -525,6 +525,7 @@
 </style>
 
 <body>
+
     <!-- Login Page -->
     <div class="login-container show" id="loginPage">
         <div class="login-header">Login</div>
@@ -539,8 +540,9 @@
     <!-- Voting Dashboard -->
     <div class="poll-container-wrapper" id="pollPage">
         <span class="controls">
-            <button class="reset-button" onclick="showResetModal()">Reset</button>
-            <a class="deleted-votes-btn" href="deletedVotes.html">Deleted Votes</a>
+            <button class="reset-button" onclick="showResetModal()" style="display: none;">Reset</button>
+            <a class="deleted-votes-btn" href="deletedVotes.html" style="display: none;">Deleted Votes</a>
+            <!-- ✅ Hide initially -->
         </span>
         <div class="header">Live Voting Poll</div>
         <div class="sub-header">Real-time results with vote bars and percentages</div>
@@ -625,7 +627,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
-    <!-- Main Script -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyA5Eh7JoLemuvpyQRED5obXvgi4G2sGJcc",
@@ -634,8 +635,7 @@
             projectId: "sanmati-voting-machine",
             storageBucket: "sanmati-voting-machine.firebasestorage.app",
             messagingSenderId: "1056435615808",
-            appId: "1:1056435615808:web:6325fe53a1dd9c6b0307a5",
-            measurementId: "G-KLPSL78YGH"
+            appId: "1:1056435615808:web:6325fe53a1dd9c6b0307a5"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -648,19 +648,12 @@
             { mainPath: '/votes/optionD', extraPaths: ['/votes/optionD1'], bar: 'Can4', count: 'Count4', percent: 'Per4' },
             { mainPath: '/votes/optionE', extraPaths: ['/votes/optionE1'], bar: 'Can5', count: 'Count5', percent: 'Per5' }
         ];
-
         let currentUserKey = null;
         let userCanActivateKeyboard = false;
-        let isKeyActive = false;
+        let userCanResetVotes = false;
+        let userCanViewDeletedVotes = false; // ✅ NEW
 
-        // Load Candidate Names
-        db.ref('/candidates').once('value').then(snapshot => {
-            document.getElementById(`candidate1`).innerText = snapshot.val().candidate1["name"];
-            document.getElementById(`candidate2`).innerText = snapshot.val().candidate2["name"];
-            document.getElementById(`candidate3`).innerText = snapshot.val().candidate3["name"];
-            document.getElementById(`candidate4`).innerText = snapshot.val().candidate4["name"];
-            document.getElementById(`candidate5`).innerText = snapshot.val().candidate5["name"];
-        });
+        let isKeyActive = false;
 
         function login() {
             const email = document.getElementById('emailInput').value.trim();
@@ -680,6 +673,8 @@
                         success = true;
                         currentUserKey = child.key;
                         userCanActivateKeyboard = !!user.canActivateKeyboard;
+                        userCanResetVotes = !!user.canResetVotes;
+                        userCanViewDeletedVotes = !!user.canViewDeletedVotes; // ✅ NEW
                     }
                 });
 
@@ -693,6 +688,11 @@
                         setTimeout(() => {
                             document.getElementById("loginPage").classList.remove("show");
                             document.getElementById("pollPage").classList.add("show");
+
+                            // ✅ Show/hide controls based on permissions
+                            document.querySelector(".reset-button").style.display = userCanResetVotes ? "inline-block" : "none";
+                            document.querySelector(".deleted-votes-btn").style.display = userCanViewDeletedVotes ? "inline-block" : "none";
+
                             listenVotes();
                             initializeKeyboardVoting();
                         }, 1000);
@@ -702,6 +702,73 @@
                     }
                 }, 1000);
             });
+        }
+
+        // ✅ Reset modal and vote functions — unchanged except for permission check
+        function showResetModal() {
+            if (!userCanResetVotes) {
+                alert("You are not authorized to reset votes.");
+                return;
+            }
+            document.getElementById("resetModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("resetModal").style.display = "none";
+        }
+
+        function confirmReset() {
+            if (!userCanResetVotes) {
+                alert("You are not authorized to reset votes.");
+                return;
+            }
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const backupPath = `/deletedVotes/backup_${timestamp}/`;
+            const allPaths = voteRefs.flatMap(ref => [ref.mainPath, ...ref.extraPaths]);
+
+            Promise.all(allPaths.map(path => db.ref(path).once('value')))
+                .then(snapshots => {
+                    const data = {};
+                    snapshots.forEach((snap, idx) => {
+                        data[allPaths[idx].replace('/votes/', '')] = snap.val() || 0;
+                    });
+
+                    db.ref(backupPath).set(data).then(() => {
+                        allPaths.forEach(path => db.ref(path).set(0));
+                        closeModal();
+                    });
+                });
+        }
+
+        // ✅ Keyboard voting setup — unchanged
+        function initializeKeyboardVoting() {
+            if (!userCanActivateKeyboard) {
+                console.warn("Keyboard voting not allowed.");
+                return;
+            }
+            listenKeyStatus();
+            document.addEventListener('keydown', (event) => {
+                if (!isKeyActive) return;
+                switch (event.key.toUpperCase()) {
+                    case 'Q': castVote(0); break;
+                    case 'W': castVote(1); break;
+                    case 'E': castVote(2); break;
+                    case 'R': castVote(3); break;
+                    case 'T': castVote(4); break;
+                }
+            });
+        }
+
+        function listenKeyStatus() {
+            db.ref('/isKeyActive').on('value', snapshot => {
+                isKeyActive = snapshot.val() === true;
+                console.log('Keyboard voting active:', isKeyActive);
+            });
+        }
+
+        function castVote(index) {
+            const mainVotePath = voteRefs[index].mainPath;
+            db.ref(mainVotePath).transaction(currentVotes => (currentVotes || 0) + 1);
         }
 
         function listenVotes() {
@@ -728,61 +795,6 @@
                 document.getElementById(ref.count).innerText = values[i];
                 document.getElementById(ref.percent).innerText = `${percentage}%`;
             });
-        }
-
-        function showResetModal() { document.getElementById("resetModal").style.display = "flex"; }
-        function closeModal() { document.getElementById("resetModal").style.display = "none"; }
-
-        function confirmReset() {
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            const backupPath = `/deletedVotes/backup_${timestamp}/`;
-            const allPaths = voteRefs.flatMap(ref => [ref.mainPath, ...ref.extraPaths]);
-
-            Promise.all(allPaths.map(path => db.ref(path).once('value')))
-                .then(snapshots => {
-                    const data = {};
-                    snapshots.forEach((snap, idx) => {
-                        data[allPaths[idx].replace('/votes/', '')] = snap.val() || 0;
-                    });
-
-                    db.ref(backupPath).set(data).then(() => {
-                        allPaths.forEach(path => db.ref(path).set(0));
-                        closeModal();
-                    });
-                });
-        }
-
-        function listenKeyStatus() {
-            db.ref('/isKeyActive').on('value', snapshot => {
-                isKeyActive = snapshot.val() === true;
-                console.log('Keyboard voting active:', isKeyActive);
-            });
-        }
-
-        function initializeKeyboardVoting() {
-            if (!userCanActivateKeyboard) {
-                console.warn("Keyboard voting is not allowed for this user.");
-                return;
-            }
-
-            listenKeyStatus();
-
-            document.addEventListener('keydown', (event) => {
-                if (!isKeyActive) return;
-
-                switch (event.key.toUpperCase()) {
-                    case 'Q': castVote(0); break;
-                    case 'W': castVote(1); break;
-                    case 'E': castVote(2); break;
-                    case 'R': castVote(3); break;
-                    case 'T': castVote(4); break;
-                }
-            });
-        }
-
-        function castVote(index) {
-            const mainVotePath = voteRefs[index].mainPath;
-            db.ref(mainVotePath).transaction(currentVotes => (currentVotes || 0) + 1);
         }
     </script>
 </body>

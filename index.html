@@ -5,502 +5,524 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Live Voting Poll</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
-    <style>
-        * {
-            box-sizing: border-box;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+</head>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .login-container,
+    .poll-container-wrapper {
+        display: none;
+    }
+
+    .show {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .login-container.show {
+        align-items: center;
+        justify-content: center;
+        animation: popIn 0.7s ease-out;
+    }
+
+    .poll-container-wrapper.show {
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 40px;
+        animation: popIn 0.7s ease-out;
+    }
+
+    .login-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        max-width: 450px;
+        padding: 56px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-container::before {
+        pointer-events: none;
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent 70%);
+        animation: pulseGlow 8s ease-in-out infinite;
+    }
+
+    .login-header {
+        text-align: center;
+        font-size: 40px;
+        font-weight: 900;
+        color: #e0f2fe;
+        margin-bottom: 16px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 1s ease;
+    }
+
+    .login-subtext {
+        text-align: center;
+        font-size: 16px;
+        color: #94a3b8;
+        margin-bottom: 40px;
+    }
+
+    .login-input {
+        width: 100%;
+        padding: 18px;
+        margin-bottom: 24px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        font-size: 16px;
+        color: #e0f2fe;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .login-input::placeholder {
+        color: #64748b;
+    }
+
+    .login-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    }
+
+    .login-button {
+        width: 100%;
+        background: linear-gradient(90deg, #3b82f6, #22d3ee);
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .login-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6);
+    }
+
+    .login-button::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.5s ease, height 0.5s ease;
+    }
+
+    .login-button:active::after {
+        width: 400px;
+        height: 400px;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 24px;
+        color: #94a3b8;
+        font-size: 14px;
+        transition: color 0.3s ease;
+    }
+
+    @keyframes popIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.9);
         }
 
-        body {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+        60% {
+            opacity: 1;
+            transform: scale(1.05);
         }
 
-        .login-container,
-        .poll-container-wrapper {
-            display: none;
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes pulseGlow {
+        0% {
+            transform: scale(1);
+            opacity: 0.4;
         }
 
-        .show {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
+        50% {
+            transform: scale(1.2);
+            opacity: 0.6;
         }
 
-        .login-container.show {
-            align-items: center;
-            justify-content: center;
-            animation: popIn 0.7s ease-out;
+        100% {
+            transform: scale(1);
+            opacity: 0.4;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
         }
 
-        .poll-container-wrapper.show {
-            max-width: 1200px;
-            margin: 50px auto;
-            padding: 40px;
-            animation: popIn 0.7s ease-out;
+        to {
+            opacity: 1;
+        }
+    }
+
+    .header {
+        text-align: center;
+        font-size: 52px;
+        font-weight: 900;
+        color: #e0f2fe;
+        padding: 24px 10px;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 1s ease;
+    }
+
+    .sub-header {
+        text-align: center;
+        font-size: 22px;
+        color: #94a3b8;
+        margin-bottom: 40px;
+    }
+
+    .poll-container {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .candidate-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        padding: 28px;
+        gap: 28px;
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        animation: slideIn 0.6s ease-out forwards;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .candidate-card:hover {
+        transform: translateY(-8px) rotateX(2deg) rotateY(2deg);
+        box-shadow: 0 16px 48px rgba(59, 130, 246, 0.3);
+    }
+
+    .candidate-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .candidate-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .candidate-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .candidate-card:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    .candidate-card:nth-child(5) {
+        animation-delay: 0.5s;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
         }
 
-        .login-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 450px;
-            padding: 56px 40px;
-            position: relative;
-            overflow: hidden;
+        to {
+            opacity: 1;
+            transform: translateX(0);
         }
+    }
 
-        .login-container::before {
-            pointer-events: none;
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent 70%);
-            animation: pulseGlow 8s ease-in-out infinite;
-        }
+    .candidate-logo {
+        width: 90px;
+        height: 90px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-        .login-header {
-            text-align: center;
-            font-size: 40px;
-            font-weight: 900;
-            color: #e0f2fe;
-            margin-bottom: 16px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 1s ease;
-        }
+    .candidate-logo:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    }
 
-        .login-subtext {
-            text-align: center;
-            font-size: 16px;
-            color: #94a3b8;
-            margin-bottom: 40px;
-        }
+    .candidate-info {
+        flex: 1;
+    }
 
-        .login-input {
-            width: 100%;
-            padding: 18px;
-            margin-bottom: 24px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            font-size: 16px;
-            color: #e0f2fe;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
+    .candidate-name {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: #e0f2fe;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
-        .login-input::placeholder {
-            color: #64748b;
-        }
+    .vote-bar-wrapper {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        height: 36px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-        .login-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
-        }
+    .vote-bar {
+        height: 100%;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #3b82f6, #22d3ee);
+        transition: width 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0 0 12px rgba(59, 130, 246, 0.5);
+    }
 
-        .login-button {
-            width: 100%;
-            background: linear-gradient(90deg, #3b82f6, #22d3ee);
-            color: white;
-            padding: 18px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-
-        .login-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6);
-        }
-
-        .login-button::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.5s ease, height 0.5s ease;
-        }
-
-        .login-button:active::after {
-            width: 400px;
-            height: 400px;
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 24px;
-            color: #94a3b8;
-            font-size: 14px;
-            transition: color 0.3s ease;
-        }
-
-        @keyframes popIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            60% {
-                opacity: 1;
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        @keyframes pulseGlow {
-            0% {
-                transform: scale(1);
-                opacity: 0.4;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 0.6;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 0.4;
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        .header {
-            text-align: center;
-            font-size: 52px;
-            font-weight: 900;
-            color: #e0f2fe;
-            padding: 24px 10px;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 1s ease;
-        }
-
-        .sub-header {
-            text-align: center;
-            font-size: 22px;
-            color: #94a3b8;
-            margin-bottom: 40px;
-        }
-
-        .poll-container {
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-        }
-
-        .candidate-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            padding: 28px;
-            gap: 28px;
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
-            animation: slideIn 0.6s ease-out forwards;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        .candidate-card:hover {
-            transform: translateY(-8px) rotateX(2deg) rotateY(2deg);
-            box-shadow: 0 16px 48px rgba(59, 130, 246, 0.3);
-        }
-
-        .candidate-card:nth-child(1) { animation-delay: 0.1s; }
-        .candidate-card:nth-child(2) { animation-delay: 0.2s; }
-        .candidate-card:nth-child(3) { animation-delay: 0.3s; }
-        .candidate-card:nth-child(4) { animation-delay: 0.4s; }
-        .candidate-card:nth-child(5) { animation-delay: 0.5s; }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .candidate-logo {
-            width: 90px;
-            height: 90px;
-            border-radius: 16px;
-            object-fit: cover;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .candidate-logo:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
-        }
-
-        .candidate-info {
-            flex: 1;
-        }
-
-        .candidate-name {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: #e0f2fe;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .vote-bar-wrapper {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            height: 36px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .vote-bar {
-            height: 100%;
-            border-radius: 12px;
-            background: linear-gradient(90deg, #3b82f6, #22d3ee);
-            transition: width 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 12px rgba(59, 130, 246, 0.5);
-        }
-
-        .vote-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                45deg,
+    .vote-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg,
                 rgba(255, 255, 255, 0.15) 25%,
                 transparent 25%,
                 transparent 50%,
                 rgba(255, 255, 255, 0.15) 50%,
                 rgba(255, 255, 255, 0.15) 75%,
                 transparent 75%,
-                transparent
-            );
-            background-size: 40px 40px;
-            animation: shimmer 1.5s linear infinite;
+                transparent);
+        background-size: 40px 40px;
+        animation: shimmer 1.5s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -40px 0;
         }
 
-        @keyframes shimmer {
-            0% {
-                background-position: -40px 0;
-            }
-            100% {
-                background-position: 40px 0;
-            }
+        100% {
+            background-position: 40px 0;
+        }
+    }
+
+    .vote-count {
+        font-size: 22px;
+        font-weight: 600;
+        min-width: 70px;
+        text-align: right;
+        color: #e0f2fe;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .percentage {
+        font-size: 16px;
+        color: #94a3b8;
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 500;
+    }
+
+    .total-votes {
+        text-align: center;
+        font-size: 28px;
+        font-weight: 700;
+        color: #e0f2fe;
+        margin: 40px 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 1s ease;
+    }
+
+    .reset-button {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+        color: white;
+        padding: 16px 28px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .reset-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.6);
+    }
+
+    .deleted-votes-btn {
+        background: linear-gradient(90deg, #3b82f6, #22d3ee);
+        color: white;
+        padding: 16px 28px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .deleted-votes-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6);
+    }
+
+    .controls {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 40px;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .modal-content {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        text-align: center;
+        max-width: 450px;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+        animation: zoomIn 0.5s ease-out;
+    }
+
+    .modal-content h3 {
+        margin-bottom: 32px;
+        font-size: 26px;
+        color: #e0f2fe;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 32px;
+    }
+
+    .modal-button {
+        padding: 14px 28px;
+        font-size: 16px;
+        font-weight: 700;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .modal-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .delete-button {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+        color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .cancel-button {
+        background: linear-gradient(90deg, #6b7280, #4b5563);
+        color: #e0f2fe;
+        box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+    }
+
+    @keyframes zoomIn {
+        from {
+            opacity: 0;
+            transform: scale(0.7);
         }
 
-        .vote-count {
-            font-size: 22px;
-            font-weight: 600;
-            min-width: 70px;
-            text-align: right;
-            color: #e0f2fe;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .loading-spinner {
+        display: none;
+        width: 28px;
+        height: 28px;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 12px auto;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
         }
 
-        .percentage {
-            font-size: 16px;
-            color: #94a3b8;
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-weight: 500;
+        100% {
+            transform: rotate(360deg);
         }
-
-        .total-votes {
-            text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: #e0f2fe;
-            margin: 40px 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 1s ease;
-        }
-
-        .reset-button {
-            background: linear-gradient(90deg, #ef4444, #f87171);
-            color: white;
-            padding: 16px 28px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
-
-        .reset-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.6);
-        }
-
-        .deleted-votes-btn {
-            background: linear-gradient(90deg, #3b82f6, #22d3ee);
-            color: white;
-            padding: 16px 28px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-
-        .deleted-votes-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6);
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.4s ease;
-        }
-
-        .modal-content {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            text-align: center;
-            max-width: 450px;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
-            animation: zoomIn 0.5s ease-out;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 32px;
-            font-size: 26px;
-            color: #e0f2fe;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 32px;
-        }
-
-        .modal-button {
-            padding: 14px 28px;
-            font-size: 16px;
-            font-weight: 700;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .modal-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        .delete-button {
-            background: linear-gradient(90deg, #ef4444, #f87171);
-            color: white;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
-
-        .cancel-button {
-            background: linear-gradient(90deg, #6b7280, #4b5563);
-            color: #e0f2fe;
-            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
-        }
-
-        @keyframes zoomIn {
-            from {
-                opacity: 0;
-                transform: scale(0.7);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .loading-spinner {
-            display: none;
-            width: 28px;
-            height: 28px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 12px auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
-</head>
+    }
+</style>
 
 <body>
     <!-- Login Page -->
@@ -627,6 +649,10 @@
             { mainPath: '/votes/optionE', extraPaths: ['/votes/optionE1'], bar: 'Can5', count: 'Count5', percent: 'Per5' }
         ];
 
+        let currentUserKey = null;
+        let userCanActivateKeyboard = false;
+        let isKeyActive = false;
+
         // Load Candidate Names
         db.ref('/candidates').once('value').then(snapshot => {
             document.getElementById(`candidate1`).innerText = snapshot.val().candidate1["name"];
@@ -636,7 +662,6 @@
             document.getElementById(`candidate5`).innerText = snapshot.val().candidate5["name"];
         });
 
-        // Login Function
         function login() {
             const email = document.getElementById('emailInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
@@ -653,6 +678,8 @@
                     const user = child.val();
                     if (user.email === email && user.password === password) {
                         success = true;
+                        currentUserKey = child.key;
+                        userCanActivateKeyboard = !!user.canActivateKeyboard;
                     }
                 });
 
@@ -677,13 +704,10 @@
             });
         }
 
-        // Listen for Vote Changes
         function listenVotes() {
             let values = Array(voteRefs.length).fill(0);
-
             voteRefs.forEach((ref, i) => {
                 const paths = [ref.mainPath, ...ref.extraPaths];
-
                 paths.forEach(path => {
                     db.ref(path).on('value', () => {
                         Promise.all(paths.map(p => db.ref(p).once('value'))).then(snaps => {
@@ -695,11 +719,9 @@
             });
         }
 
-        // Update UI with Vote Counts
         function updateUI(values) {
             const totalVotes = values.reduce((a, b) => a + b, 0);
             document.getElementById("totalVotes").innerText = `Total Votes: ${totalVotes}`;
-
             voteRefs.forEach((ref, i) => {
                 const percentage = totalVotes > 0 ? ((values[i] / totalVotes) * 100).toFixed(1) : 0;
                 document.getElementById(ref.bar).style.width = `${percentage}%`;
@@ -708,11 +730,9 @@
             });
         }
 
-        // Modal Functions
         function showResetModal() { document.getElementById("resetModal").style.display = "flex"; }
         function closeModal() { document.getElementById("resetModal").style.display = "none"; }
 
-        // Confirm Reset and Backup
         function confirmReset() {
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
             const backupPath = `/deletedVotes/backup_${timestamp}/`;
@@ -732,9 +752,6 @@
                 });
         }
 
-        // Keyboard Voting Setup
-        let isKeyActive = false;
-
         function listenKeyStatus() {
             db.ref('/isKeyActive').on('value', snapshot => {
                 isKeyActive = snapshot.val() === true;
@@ -743,6 +760,11 @@
         }
 
         function initializeKeyboardVoting() {
+            if (!userCanActivateKeyboard) {
+                console.warn("Keyboard voting is not allowed for this user.");
+                return;
+            }
+
             listenKeyStatus();
 
             document.addEventListener('keydown', (event) => {
@@ -760,10 +782,7 @@
 
         function castVote(index) {
             const mainVotePath = voteRefs[index].mainPath;
-
-            db.ref(mainVotePath).transaction(currentVotes => {
-                return (currentVotes || 0) + 1;
-            });
+            db.ref(mainVotePath).transaction(currentVotes => (currentVotes || 0) + 1);
         }
     </script>
 </body>

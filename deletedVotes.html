@@ -5,7 +5,8 @@
     <meta charset="UTF-8" />
     <title>Deleted Vote Polls</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
     <style>
         * {
             box-sizing: border-box;
@@ -53,18 +54,28 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
             animation: slideIn 0.6s ease-out forwards;
-            width: calc(103.33% - 16px); /* Three entries per row */
+            width: calc(33.33% - 16px);
+            /* Three entries per row */
         }
 
-        .backup-entry:nth-child(1) { animation-delay: 0.1s; }
-        .backup-entry:nth-child(2) { animation-delay: 0.2s; }
-        .backup-entry:nth-child(3) { animation-delay: 0.3s; }
+        .backup-entry:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .backup-entry:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .backup-entry:nth-child(3) {
+            animation-delay: 0.3s;
+        }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
                 transform: translateX(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -76,10 +87,12 @@
                 opacity: 0;
                 transform: scale(0.9);
             }
+
             60% {
                 opacity: 1;
                 transform: scale(1.05);
             }
+
             100% {
                 transform: scale(1);
             }
@@ -89,6 +102,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -185,16 +199,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(
-                45deg,
-                rgba(255, 255, 255, 0.15) 25%,
-                transparent 25%,
-                transparent 50%,
-                rgba(255, 255, 255, 0.15) 50%,
-                rgba(255, 255, 255, 0.15) 75%,
-                transparent 75%,
-                transparent
-            );
+            background: linear-gradient(45deg,
+                    rgba(255, 255, 255, 0.15) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.15) 50%,
+                    rgba(255, 255, 255, 0.15) 75%,
+                    transparent 75%,
+                    transparent);
             background-size: 40px 40px;
             animation: shimmer 1.5s linear infinite;
         }
@@ -203,6 +215,7 @@
             0% {
                 background-position: -40px 0;
             }
+
             100% {
                 background-position: 40px 0;
             }
@@ -213,10 +226,12 @@
                 transform: scale(1);
                 box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
             }
+
             50% {
                 transform: scale(1.03);
                 box-shadow: 0 0 20px rgba(59, 130, 246, 1);
             }
+
             100% {
                 transform: scale(1);
                 box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
@@ -256,6 +271,7 @@
             0% {
                 transform: rotate(0deg);
             }
+
             100% {
                 transform: rotate(360deg);
             }
@@ -272,7 +288,8 @@
 
         @media (max-width: 1024px) {
             .backup-entry {
-                width: calc(50% - 16px); /* Two entries per row */
+                width: calc(50% - 16px);
+                /* Two entries per row */
             }
         }
 
@@ -283,7 +300,8 @@
             }
 
             .backup-entry {
-                width: 100%; /* One entry per row */
+                width: 100%;
+                /* One entry per row */
             }
 
             .candidate-card {
@@ -310,7 +328,6 @@
     <div class="loading-spinner" id="loadingSpinner"></div>
     <div class="backup-container" id="backupContainer"></div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
     <script>
@@ -319,10 +336,9 @@
             authDomain: "sanmati-voting-machine.firebaseapp.com",
             databaseURL: "https://sanmati-voting-machine-default-rtdb.firebaseio.com",
             projectId: "sanmati-voting-machine",
-            storageBucket: "sanmati-voting-machine.firebasestorage.app",
+            storageBucket: "sanmati-voting-machine.appspot.com",
             messagingSenderId: "1056435615808",
-            appId: "1:1056435615808:web:6325fe53a1dd9c6b0307a5",
-            measurementId: "G-KLPSL78YGH"
+            appId: "1:1056435615808:web:6325fe53a1dd9c6b0307a5"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -330,110 +346,76 @@
         const container = document.getElementById("backupContainer");
         const loadingSpinner = document.getElementById("loadingSpinner");
 
-        // Show loading spinner
-        loadingSpinner.style.display = 'block';
+        const selectedRole = localStorage.getItem("selectedRole") || "president";
+        const backupPath = `/deletedVotes/${selectedRole}`;
+        const optionKeys = ["optionA", "optionB", "optionC", "optionD", "optionE"];
 
-        // Load candidate names and option mappings
-        db.ref("/candidates").once("value").then(candidateSnap => {
-            const candidateData = candidateSnap.val();
-            if (!candidateData) {
-                container.innerHTML = "<p class='error-message'>No candidate data found.</p>";
-                loadingSpinner.style.display = 'none';
+        loadingSpinner.style.display = "block";
+
+        db.ref(backupPath).once("value").then(snapshot => {
+            loadingSpinner.style.display = "none";
+            const data = snapshot.val();
+            if (!data) {
+                container.innerHTML = "<p>No backups found.</p>";
                 return;
             }
 
-            const candidateMap = {};
-            Object.values(candidateData).forEach(candidate => {
-                candidateMap[candidate.name] = candidate.options || [];
+            const entries = Object.entries(data).sort((a, b) => {
+                const dateA = new Date(a[0].replace("backup_", "").replace(/_/g, ":"));
+                const dateB = new Date(b[0].replace("backup_", "").replace(/_/g, ":"));
+                return dateB - dateA;
             });
 
-            // Load deleted vote backups
-            db.ref("/deletedVotes").once("value").then(snapshot => {
-                loadingSpinner.style.display = 'none';
-                const data = snapshot.val();
-                if (!data) {
-                    container.innerHTML = "<p class='error-message'>No backups found.</p>";
-                    return;
-                }
+            entries.forEach(([timestamp, voteData]) => {
+                const totalVotes = optionKeys.reduce((sum, key) => sum + (voteData[key] || 0), 0);
+                const backupDiv = document.createElement("div");
+                backupDiv.className = "backup-entry";
 
-                const entries = Object.entries(data).sort((a, b) => {
-                    const dateA = new Date(a[0].replace('backup_', '').replace(/_/g, ':'));
-                    const dateB = new Date(b[0].replace('backup_', '').replace(/_/g, ':'));
-                    return dateB - dateA;
+                const timeHeader = document.createElement("div");
+                timeHeader.className = "timestamp";
+                timeHeader.textContent = timestamp.replace("backup_", "").replace(/_/g, " ");
+                backupDiv.appendChild(timeHeader);
+
+                optionKeys.forEach((key, idx) => {
+                    const count = voteData[key] || 0;
+                    const percent = totalVotes > 0 ? ((count / totalVotes) * 100).toFixed(1) : 0;
+                    const candidateLabel = `Candidate ${idx + 1}`;
+                    const imgPath = `CandidateImages/${selectedRole}/candidate${idx + 1}.jpg`;
+
+                    const card = document.createElement("div");
+                    card.className = "candidate-card";
+
+                    const img = document.createElement("img");
+                    img.src = imgPath;
+                    img.alt = candidateLabel;
+                    img.className = "candidate-logo";
+                    img.onerror = () => { img.style.display = "none"; };
+
+                    const info = document.createElement("div");
+                    info.className = "candidate-info";
+                    info.innerHTML = `
+            <div class="candidate-name">${candidateLabel}</div>
+            <div class="vote-bar-wrapper">
+              <div class="vote-bar" style="width: ${percent}%"></div>
+            </div>
+          `;
+
+                    const countDiv = document.createElement("div");
+                    countDiv.className = "vote-count";
+                    countDiv.textContent = count;
+
+                    card.appendChild(img);
+                    card.appendChild(info);
+                    card.appendChild(countDiv);
+                    backupDiv.appendChild(card);
                 });
 
-                entries.forEach(([timestampKey, backupData]) => {
-                    const votesRaw = backupData.votes || backupData;
-
-                    const mergedVotes = {};
-                    Object.entries(candidateMap).forEach(([candidate, keys]) => {
-                        mergedVotes[candidate] = keys.reduce((sum, key) => sum + (votesRaw[key] || 0), 0);
-                    });
-
-                    const totalVotes = Object.values(mergedVotes).reduce((sum, val) => sum + val, 0);
-
-                    const backupDiv = document.createElement("div");
-                    backupDiv.className = "backup-entry";
-
-                    // Format timestamp
-                    let formattedTime;
-                    const match = timestampKey.match(/backup_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/);
-                    if (match) {
-                        formattedTime = `${match[3]}/${match[2]}/${match[1]}, ${match[4]}:${match[5]}:${match[6]}`;
-                    } else {
-                        const parsed = new Date(timestampKey.replace('backup_', '').replace(/_/g, ':'));
-                        formattedTime = isNaN(parsed)
-                            ? timestampKey.replace(/_/g, ' ')
-                            : parsed.toLocaleString();
-                    }
-
-                    const timeHeader = document.createElement("div");
-                    timeHeader.className = "timestamp";
-                    timeHeader.textContent = `Backup Time: ${formattedTime}`;
-                    backupDiv.appendChild(timeHeader);
-
-                    // Display each candidate
-                    Object.entries(mergedVotes).forEach(([candidate, count]) => {
-                        const percentage = totalVotes > 0 ? ((count / totalVotes) * 100).toFixed(1) : 0;
-                        const imageFile = candidate.toLowerCase().replace(/\s+/g, "") + ".jpg";
-
-                        const card = document.createElement("div");
-                        card.className = "candidate-card";
-
-                        const img = document.createElement("img");
-                        img.className = "candidate-logo";
-                        img.src = `CandidateImages/${imageFile}`;
-                        img.alt = candidate;
-                        img.onerror = () => {
-                            img.src = '';
-                            img.className = "candidate-logo error";
-                        };
-
-                        card.appendChild(img);
-                        card.innerHTML += `
-                            <div class="candidate-info">
-                                <div class="candidate-name">${candidate}</div>
-                                <div class="vote-bar-wrapper">
-                                    <div class="vote-bar" style="width: ${percentage}%"></div>
-                                    <div class="percentage">${percentage}%</div>
-                                </div>
-                            </div>
-                            <div class="vote-count">${count}</div>
-                        `;
-                        backupDiv.appendChild(card);
-                    });
-
-                    container.appendChild(backupDiv);
-                });
-            }).catch(error => {
-                loadingSpinner.style.display = 'none';
-                container.innerHTML = "<p class='error-message'>Error loading backups: " + error.message + "</p>";
-                console.error("Error loading backups:", error);
+                container.appendChild(backupDiv);
             });
-        }).catch(error => {
-            loadingSpinner.style.display = 'none';
-            container.innerHTML = "<p class='error-message'>Error loading candidate data: " + error.message + "</p>";
-            console.error("Error loading candidate data:", error);
+        }).catch(err => {
+            loadingSpinner.style.display = "none";
+            container.innerHTML = "<p>Error loading data.</p>";
+            console.error(err);
         });
     </script>
 </body>

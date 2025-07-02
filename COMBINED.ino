@@ -35,6 +35,23 @@ FirebaseData firebaseData;
 FirebaseAuth auth;
 FirebaseConfig config;
 
+// Array of Firebase reference paths for votes
+const char* votePaths[] = {
+  "/votes/president/optionA",
+  "/votes/president/optionB",
+  "/votes/president/optionC",
+  "/votes/president/optionD",
+  "/votes/president/optionE"
+};
+
+// const char* votePaths[] = {
+//   "/votes/prime-minister/optionA",
+//   "/votes/prime-minister/optionB",
+//   "/votes/prime-minister/optionC",
+//   "/votes/prime-minister/optionD",
+//   "/votes/prime-minister/optionE"
+// };
+
 void setup() {
   Serial.begin(115200);
 
@@ -92,11 +109,11 @@ void loop() {
   }
 
   if (canVote) {
-    if (digitalRead(BUTTON_A) == LOW) handleVote('Q', "/votes/optionA", voteA, BUTTON_A);
-    else if (digitalRead(BUTTON_B) == LOW) handleVote('W', "/votes/optionB", voteB, BUTTON_B);
-    else if (digitalRead(BUTTON_C) == LOW) handleVote('E', "/votes/optionC", voteC, BUTTON_C);
-    else if (digitalRead(BUTTON_D) == LOW) handleVote('R', "/votes/optionD", voteD, BUTTON_D);
-    else if (digitalRead(BUTTON_E) == LOW) handleVote('T', "/votes/optionE", voteE, BUTTON_E);
+    if (digitalRead(BUTTON_A) == LOW) handleVote('Q', votePaths[0], voteA, BUTTON_A);
+    else if (digitalRead(BUTTON_B) == LOW) handleVote('W', votePaths[1], voteB, BUTTON_B);
+    else if (digitalRead(BUTTON_C) == LOW) handleVote('E', votePaths[2], voteC, BUTTON_C);
+    else if (digitalRead(BUTTON_D) == LOW) handleVote('R', votePaths[3], voteD, BUTTON_D);
+    else if (digitalRead(BUTTON_E) == LOW) handleVote('T', votePaths[4], voteE, BUTTON_E);
   }
 }
 
@@ -139,7 +156,7 @@ void selectStartupMode() {
   }
 }
 
-void handleVote(char key, String path, int &localVoteVar, int buttonPin) {
+void handleVote(char key, const char* path, int &localVoteVar, int buttonPin) {
   if (!useWiFiMode) {
     if (bleActive && bleKeyboard.isConnected()) {
       Serial.print("Sending BLE key: ");
@@ -184,11 +201,11 @@ void finishVoting(int buttonPin) {
 }
 
 void getVoteData() {
-  if (Firebase.getInt(firebaseData, "/votes/optionA")) voteA = firebaseData.intData(); else voteA = 0;
-  if (Firebase.getInt(firebaseData, "/votes/optionB")) voteB = firebaseData.intData(); else voteB = 0;
-  if (Firebase.getInt(firebaseData, "/votes/optionC")) voteC = firebaseData.intData(); else voteC = 0;
-  if (Firebase.getInt(firebaseData, "/votes/optionD")) voteD = firebaseData.intData(); else voteD = 0;
-  if (Firebase.getInt(firebaseData, "/votes/optionE")) voteE = firebaseData.intData(); else voteE = 0;
+  if (Firebase.getInt(firebaseData, votePaths[0])) voteA = firebaseData.intData(); else voteA = 0;
+  if (Firebase.getInt(firebaseData, votePaths[1])) voteB = firebaseData.intData(); else voteB = 0;
+  if (Firebase.getInt(firebaseData, votePaths[2])) voteC = firebaseData.intData(); else voteC = 0;
+  if (Firebase.getInt(firebaseData, votePaths[3])) voteD = firebaseData.intData(); else voteD = 0;
+  if (Firebase.getInt(firebaseData, votePaths[4])) voteE = firebaseData.intData(); else voteE = 0;
 
   Serial.println("Firebase vote counts loaded:");
   Serial.println("A: " + String(voteA));

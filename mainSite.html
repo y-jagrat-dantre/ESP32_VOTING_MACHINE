@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Voting Poll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+    <!-- Login Page -->
+    <div class="login-container show" id="loginPage">
+        <div class="login-header">Login</div>
+        <div class="login-subtext">Access your voting dashboard</div>
+        <input type="email" id="emailInput" class="login-input" placeholder="Email" />
+        <input type="password" id="passwordInput" class="login-input" placeholder="Password" />
+        <button class="login-button" onclick="login()">Login</button>
+        <div class="login-footer" id="loginStatus"></div>
+    </div>
+
+    <!-- Voting Dashboard -->
+    <div class="poll-container-wrapper" id="pollPage">
+        <span class="controls">
+            <button class="reset-button" onclick="showResetModal()" style="display: none;">Reset</button>
+            <a class="deleted-votes-btn" href="deletedVotes.html" style="display: none;">Deleted Votes</a>
+        </span>
+        <div class="header">Live Voting Poll - <span id="roleTitle"></span></div>
+        <div class="sub-header">Real-time results with vote bars and percentages</div>
+        <div class="total-votes" id="totalVotes">Total Votes: 0</div>
+        <div id="pollContainer"></div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <h3>Are you sure you want to delete all vote data?</h3>
+            <div class="modal-buttons">
+                <button class="modal-button delete-button" onclick="confirmReset()">Delete</button>
+                <button class="modal-button cancel-button" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <script>
+        // Role selected (president or prime-minister)
+        const selectedRole = localStorage.getItem('selectedRole') || 'president';
+        document.getElementById("roleTitle").innerText =
+            selectedRole === 'prime-minister' ? "Prime Minister" : "President";
+
+        // Firebase config - replace with your own
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5Eh7JoLemuvpyQRED5obXvgi4G2sGJcc",
+            authDomain: "sanmati-voting-machine.firebaseapp.com",
+            databaseURL: "https://sanmati-voting-machine-default-rtdb.firebaseio.com",
+            projectId: "sanmati-voting-machine",
+            storageBucket: "sanmati-voting-machine.appspot.com",
+            messagingSenderId: "1056435615808",
+            appId: "1:1056435615808:web:6325fe53a1dd9c6b0307a5"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Array to store vote references dynamically built from candidates
+        let voteRefs = [];
+
+        // User state
+        let currentUserKey = null;
+        let userCanActivateKeyboard = false;
+        let userCanResetVotes = false;
+        let userCanViewDeletedVotes = false;
+        let isKeyActive = false;
+
+        // Login function
+        function login() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const loginStatus = document.getElementById('loginStatus');
+            const loginButton = document.querySelector('.login-button');
+
+            loginButton.disabled = true;
+            loginStatus.innerText = "Checking credentials...";
+
+            db.ref('users').once('value').then(snapshot => {
+                let success = false;
+                snapshot.forEach(child => {
+                    const user = child.val();
+                    if (user.email === email && user.password === password) {
+                        success = true;
+                        currentUserKey = child.key;
+                        userCanActivateKeyboard = !!user.canActivateKeyboard;
+                        userCanResetVotes = !!user.canResetVotes;
+                        userCanViewDeletedVotes = !!user.canViewDeletedVotes;
+                    }
+                });
+
+                if (success) {
+                    loginStatus.style.color = "#22d3ee";
+                    loginStatus.innerText = "Login successful! Loading poll...";
+                    setTimeout(() => {
+                        document.getElementById("loginPage").classList.remove("show");
+                        document.getElementById("pollPage").classList.add("show");
+
+                        document.querySelector(".reset-button").style.display = userCanResetVotes ? "inline-block" : "none";
+                        document.querySelector(".deleted-votes-btn").style.display = userCanViewDeletedVotes ? "inline-block" : "none";
+
+                        loadCandidatesAndBuildUI();
+                        initializeKeyboardVoting();
+                        listenKeyStatus();
+                    }, 1000);
+                } else {
+                    loginStatus.style.color = "#ef4444";
+                    loginStatus.innerText = "Invalid email or password.";
+                    loginButton.disabled = false;
+                }
+            });
+        }
+
+        // Load candidates from Firebase and build poll UI
+        function loadCandidatesAndBuildUI() {
+            const pollContainer = document.getElementById("pollContainer");
+            const candidateRef = `/candidates/${selectedRole}`;
+
+            db.ref(candidateRef).once('value').then(snapshot => {
+                const candidates = snapshot.val();
+                if (!candidates) {
+                    pollContainer.innerHTML = "<p>No candidates found for selected role.</p>";
+                    return;
+                }
+
+                voteRefs.length = 0;
+                pollContainer.innerHTML = "";
+
+                Object.entries(candidates).forEach(([key, data], idx) => {
+                    const name = data.name || `Candidate ${idx + 1}`;
+                    const option = (data.options && data.options[0]) || `option${String.fromCharCode(65 + idx)}`;
+                    voteRefs.push({
+                        mainPath: `/votes/${selectedRole}/${option}`,
+                        extraPaths: [],
+                        id: idx + 1
+                    });
+
+                    const card = document.createElement("div");
+                    card.className = "candidate-card";
+                    card.innerHTML = `
+                <img src="CandidateImages/${selectedRole}/candidate${idx + 1}.jpg" class="candidate-logo" alt="${name}" />
+                <div class="candidate-info">
+                    <div class="candidate-name" id="candidate${idx + 1}">${name}</div>
+                    <div class="vote-bar-wrapper">
+                        <div class="vote-bar" id="Can${idx + 1}"></div>
+                        <div class="percentage" id="Per${idx + 1}">0%</div>
+                    </div>
+                </div>
+                <div class="vote-count" id="Count${idx + 1}">0</div>
+            `;
+                    pollContainer.appendChild(card);
+                });
+
+                listenVotes();
+            });
+        }
+
+        // Listen for votes changes and update UI
+        function listenVotes() {
+            let values = Array(voteRefs.length).fill(0);
+            voteRefs.forEach((ref, i) => {
+                const paths = [ref.mainPath, ...ref.extraPaths];
+                paths.forEach(path => {
+                    db.ref(path).on('value', () => {
+                        Promise.all(paths.map(p => db.ref(p).once('value'))).then(snaps => {
+                            values[i] = snaps.reduce((sum, s) => sum + (s.val() || 0), 0);
+                            updateUI(values);
+                        });
+                    });
+                });
+            });
+        }
+
+        // Update vote bars, counts, and percentages
+        function updateUI(values) {
+            const totalVotes = values.reduce((a, b) => a + b, 0);
+            document.getElementById("totalVotes").innerText = `Total Votes: ${totalVotes}`;
+            voteRefs.forEach((ref, i) => {
+                const percentage = totalVotes > 0 ? ((values[i] / totalVotes) * 100).toFixed(1) : 0;
+                const voteBar = document.getElementById(ref.bar || `Can${ref.id}`);
+                const countEl = document.getElementById(ref.count || `Count${ref.id}`);
+                const percentEl = document.getElementById(ref.percent || `Per${ref.id}`);
+
+                if (voteBar) voteBar.style.width = `${percentage}%`;
+                if (countEl) countEl.innerText = values[i];
+                if (percentEl) percentEl.innerText = `${percentage}%`;
+            });
+        }
+
+        // Keyboard voting initialization
+        function initializeKeyboardVoting() {
+            if (!userCanActivateKeyboard) {
+                console.warn("Keyboard voting not allowed.");
+                return;
+            }
+
+            document.addEventListener('keydown', (event) => {
+                if (!isKeyActive) return;
+                switch (event.key.toUpperCase()) {
+                    case 'Q': castVote(0); break;
+                    case 'W': castVote(1); break;
+                    case 'E': castVote(2); break;
+                    case 'R': castVote(3); break;
+                    case 'T': castVote(4); break;
+                }
+            });
+        }
+
+        // Listen to key active status from Firebase
+        function listenKeyStatus() {
+            db.ref('/isKeyActive').on('value', snapshot => {
+                isKeyActive = snapshot.val() === true;
+            });
+        }
+
+        // Cast vote in Firebase transaction
+        function castVote(index) {
+            if (!voteRefs[index]) return;
+            const mainVotePath = voteRefs[index].mainPath;
+            db.ref(mainVotePath).transaction(currentVotes => (currentVotes || 0) + 1);
+        }
+
+        // Show reset modal
+        function showResetModal() {
+            if (!userCanResetVotes) {
+                alert("You are not authorized to reset votes.");
+                return;
+            }
+            document.getElementById("resetModal").style.display = "flex";
+        }
+
+        // Close reset modal
+        function closeModal() {
+            document.getElementById("resetModal").style.display = "none";
+        }
+
+        // Confirm reset votes
+        function confirmReset() {
+            if (!userCanResetVotes) {
+                alert("You are not authorized to reset votes.");
+                return;
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const backupPath = `/deletedVotes/${selectedRole}/backup_${timestamp}/`;
+            const allPaths = voteRefs.flatMap(ref => [ref.mainPath, ...ref.extraPaths]);
+
+            Promise.all(allPaths.map(path => db.ref(path).once('value')))
+                .then(snapshots => {
+                    const data = {};
+                    snapshots.forEach((snap, idx) => {
+                        data[allPaths[idx].split('/').pop()] = snap.val() || 0;
+                    });
+
+                    return db.ref(backupPath).set(data);
+                })
+                .then(() => {
+                    allPaths.forEach(path => db.ref(path).set(0));
+                    closeModal();
+                })
+                .catch(err => {
+                    alert("Error during reset: " + err.message);
+                });
+        }
+    </script>
+</body>
+
+</html>
